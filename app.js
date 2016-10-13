@@ -1,24 +1,29 @@
 var express = require('express'),
   app = express(),
-  engines = require('consolidate');
+  engines = require('consolidate'),
+  MongoClient = require('mongodb').MongoClient,
+  assert = require('assert');
 
 app.engine('html', engines.nunjucks);
 app.set('view engine', 'html');
 app.set('views', __dirname + '/views');
 
-app.get('/', function (req, res) {
-  // hello ==> le fichier hello.html
-  // Name ==> La variable du template
-  res.render('hello', {
-    name: 'Templates'
+MongoClient.connect('mongodb://localhost:27017/video', function (err, db) {
+  assert.equal(null, err); // gestion de l'erreur
+  console.log("Successfully connected to MongoDB.");
+  app.get('/', function (req, res) {
+    db.collection('movies').find({}).toArray(function (err, docs) {
+      res.render('movies', {
+        'movies': docs
+      });
+    });
   });
-});
+  app.use(function (req, res) {
+    res.sendStatus(404);
+  });
+  var server = app.listen(3000, function () {
+    var port = server.address().port;
+    console.log('Express server listening on port %s.', port);
+  });
 
-app.use(function (req, res) {
-  res.sendStatus(404);
-});
-
-var server = app.listen(3000, function () {
-  var port = server.address().port;
-  console.log('Express server listening on port %s', port);
 });
