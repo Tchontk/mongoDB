@@ -1,29 +1,37 @@
 var express = require('express'),
   app = express(),
-  engines = require('consolidate'),
-  MongoClient = require('mongodb').MongoClient,
-  assert = require('assert');
+  engines = require('consolidate');
 
 app.engine('html', engines.nunjucks);
 app.set('view engine', 'html');
 app.set('views', __dirname + '/views');
 
-MongoClient.connect('mongodb://localhost:27017/video', function (err, db) {
-  assert.equal(null, err); // gestion de l'erreur
-  console.log("Successfully connected to MongoDB.");
-  app.get('/', function (req, res) {
-    db.collection('movies').find({}).toArray(function (err, docs) {
-      res.render('movies', {
-        'movies': docs
-      });
-    });
+// Handler for internal server errors
+function errorHandler(err, req, res, next) {
+  console.error(err.message);
+  console.error(err.stack);
+  res.status(500).render('error_template', {
+    error: err
   });
-  app.use(function (req, res) {
-    res.sendStatus(404);
-  });
-  var server = app.listen(3000, function () {
-    var port = server.address().port;
-    console.log('Express server listening on port %s.', port);
-  });
+}
 
+// Le " :name " n'est pas le chemin mais l'information saisie après le slash
+// http://localhost:3000/top ==> var name = "top"
+// http://localhost:3000/top?getvar1=hello
+app.get('/:name', function (req, res, next) {
+  var name = req.params.name;
+  var getvar1 = req.query.getvar1 || 'a';
+  var getvar2 = req.query.getvar2;
+  res.render('hello', {
+    name: name,
+    getvar1: getvar1,
+    getvar2: getvar2
+  });
+});
+
+app.use(errorHandler);
+
+var server = app.listen(3000, function () {
+  var port = server.address().port;
+  console.log('Express server listening on port %s.', port);
 });
