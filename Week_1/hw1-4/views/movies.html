@@ -1,0 +1,33 @@
+<!doctype HTML>
+<html>
+
+<head>
+  <title>My Movies</title>
+</head>
+<style>
+  body {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+  }
+</style>
+
+<body>
+  <form action="/save" method="POST">
+    <label> Title</label>
+    <input type="input" name="title" value="" />
+    <label> Year</label>
+    <input type="input" name="year" value="" />
+    <label> Imdb</label>
+    <input type="input" name="imdb" value="" />
+    <input type="submit" value="Submit" />
+  </form>
+  <h1>Movies</h1>
+  <ul>
+    {% for movie in movies %}
+    <li><a href="http://www.imdb.com/title/{{ movie.imdb }}">{{ movie.title }}, {{ movie.year }}</a></li>
+    {% else %}
+    <li>No movies found.</li>
+    {% endfor %}
+  </ul>
+</body>
+
+</html>

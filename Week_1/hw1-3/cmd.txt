@@ -1,0 +1,3 @@
+npm update
+mongorestore dump
+node app.js
