@@ -17,7 +17,7 @@ db.movieDetails.find({
       $ne: 100
     }
   }, {
-    "metacritic" {
+    "metacritic": {
       $exists: true
     }
   }]
