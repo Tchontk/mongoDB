@@ -5,7 +5,7 @@
 * Croissance : La croissance d'une des collections est régulière pas rapport à la seconde qui elle est stable
 * Taille : La taille cummulée des documents tendant à dépasser 16 MB
 * Atomicité : Pas de maj d'informations des deux collection en même temps
-____
+
 ## 1-n Relation
 ### Many --> __Linking__
 * 2 Collections
@@ -13,7 +13,7 @@ ____
 ### Few --> __Embedding__
 * 1 Collection
 * Embed le Few (Comment) dans le "1" (Post)
-____
+
 ## Many - Many
 ### 2 collections --> __Linking__
 > Une table d'id dans une des collections 
