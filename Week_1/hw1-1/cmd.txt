@@ -1,6 +1,0 @@
-mongorestore dump
-show dbs
-__ m101
-use m101
-show collections
-__ hw1_1
