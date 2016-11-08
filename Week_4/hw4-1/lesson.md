@@ -18,5 +18,6 @@
 ### 2 collections --> __Linking__
 * Une table d'id dans une des collections 
 * Une table d'id dans les deux collections ==> Pour un problème de performance, mais bof --> Inconsistance
+
 ### 1 Collections --> __Embedding__
 * Embed une dans l'autre ==> Bof duplication.... --> Inconsistance
