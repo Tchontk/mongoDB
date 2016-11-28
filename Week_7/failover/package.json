@@ -1,0 +1,6 @@
+{
+  "main": "app.js",
+  "dependencies": {
+    "mongodb": "~2.1.3"
+  }
+}
