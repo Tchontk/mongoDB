@@ -1,32 +1,11 @@
-/*
-  Copyright (c) 2008 - 2016 MongoDB, Inc. <http://mongodb.com>
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
-
-
 var MongoClient = require('mongodb').MongoClient,
     assert = require('assert');
 
-
 function ItemDAO(database) {
     "use strict";
-
     this.db = database;
-
     this.getCategories = function(callback) {
         "use strict";
-
         /*
         * TODO-lab1A
         *
@@ -51,27 +30,32 @@ function ItemDAO(database) {
         * to the callback.
         *
         */
-
         var categories = [];
-        var category = {
+        var totalItem = 0;
+        /*var category = {
             _id: "All",
-            num: 9999
+           num: 9999
         };
-
-        categories.push(category)
-
-        // TODO-lab1A Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the categories array to the
-        // callback.
-        callback(categories);
+        */        
+        var cursor=this.db.collection('item').aggregate([{
+          $group: {_id:"$category"
+                  , num: {$sum: 1} 
+        }},{
+          $sort:{_id:1}} 
+        ]);
+        
+        cursor.forEach(function(element){
+          totalItem += element.num;
+          categories.push(element)
+        }, function(){
+          categories.unshift({_id: "All", num: totalItem})
+          callback(categories);
+        })
     }
 
 
     this.getItems = function(category, page, itemsPerPage, callback) {
         "use strict";
-
         /*
          * TODO-lab1B
          *
@@ -94,26 +78,33 @@ function ItemDAO(database) {
          *
          */
 
-        var pageItem = this.createDummyItem();
+        //var pageItem = this.createDummyItem();
         var pageItems = [];
+        /*
         for (var i=0; i<5; i++) {
             pageItems.push(pageItem);
         }
+        */
+        var query = ((category === "All") ? {} : {"category": category});
+        var cursor=this.db.collection('item')
+          .find(query)
+          .sort({_id:1})
+          .skip(page * itemsPerPage)
+          .limit(itemsPerPage);
 
-        // TODO-lab1B Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the items for the selected page
-        // to the callback.
-        callback(pageItems);
+        cursor.forEach(
+          function(element){
+            pageItems.push(element)
+          }, 
+          function(){
+            callback(pageItems);
+          }
+        )
     }
 
 
     this.getNumItems = function(category, callback) {
         "use strict";
-
-        var numItems = 0;
-
         /*
          * TODO-lab1C:
          *
@@ -129,15 +120,26 @@ function ItemDAO(database) {
          *
          */
 
-         // TODO Include the following line in the appropriate
-         // place within your code to pass the count to the callback.
-        callback(numItems);
+        var numItems = 0;
+        var query = ((category === "All") ? {_id:{$exists:true}} : {"category": category});
+        var cursor=this.db.collection('item').aggregate([
+          {$match: query},
+          {$group: {_id:1, num: {$sum: 1}}},
+        ]);
+
+        cursor.forEach(
+          function(element){
+            numItems = element.num
+          }, 
+          function(){
+            callback(numItems);
+          }
+        )
     }
 
 
     this.searchItems = function(query, page, itemsPerPage, callback) {
         "use strict";
-
         /*
          * TODO-lab2A
          *
@@ -162,26 +164,39 @@ function ItemDAO(database) {
          *
          */
 
-        var item = this.createDummyItem();
+        //var item = this.createDummyItem();
         var items = [];
-        for (var i=0; i<5; i++) {
-            items.push(item);
-        }
-
-        // TODO-lab2A Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the items for the selected page
-        // of search results to the callback.
-        callback(items);
+        /* 
+        * for (var i=0; i<5; i++) {
+        *    items.push(item);
+        * }
+        */
+        /**
+         * db.item.createIndex({title:1})
+         * db.item.createIndex({slogan:1})
+         * db.item.createIndex({description:1})
+         */
+        var regexQuery = new RegExp(query)
+        var stringQuery = {$or: [{"title" : regexQuery}, {"slogan" : regexQuery}, {"description": regexQuery}]};
+        var cursor=this.db.collection('item')
+          .find(stringQuery)
+          .sort({_id:1})
+          .skip(page * itemsPerPage)
+          .limit(itemsPerPage);
+          
+        cursor.forEach(
+          function(element){
+            items.push(element)
+          }, 
+          function(){
+            callback(items);
+          }
+        )
     }
 
 
     this.getNumSearchItems = function(query, callback) {
         "use strict";
-
-        var numItems = 0;
-
         /*
         * TODO-lab2B
         *
@@ -195,31 +210,37 @@ function ItemDAO(database) {
         * simply do this in the mongo shell.
         */
 
-        callback(numItems);
+        var numItems = 0;
+        var regexQuery = new RegExp(query)
+        var stringQuery = {$or: [{"title" : regexQuery}, {"slogan" : regexQuery}, {"description": regexQuery}]};
+        var cursor=this.db.collection('item').aggregate([
+          {$match: stringQuery},
+          {$group: {_id:1, num: {$sum: 1}}},
+        ]);
+
+        cursor.forEach(
+          function(element){
+            numItems = element.num
+          }, 
+          function(){
+            callback(numItems);
+          }
+        )
     }
 
 
     this.getItem = function(itemId, callback) {
         "use strict";
-
         /*
          * TODO-lab3
-         *
          * LAB #3: Implement the getItem() method.
-         *
          * Using the itemId parameter, query the "item" collection by
          * _id and pass the matching item to the callback function.
-         *
          */
-
-        var item = this.createDummyItem();
-
-        // TODO-lab3 Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the matching item
-        // to the callback.
-        callback(item);
+        //var item = this.createDummyItem();
+        this.db.collection('item').findOne({_id:itemId}, function (err, result){
+          callback(result);  
+        });
     }
 
 
@@ -237,35 +258,25 @@ function ItemDAO(database) {
 
     this.addReview = function(itemId, comment, name, stars, callback) {
         "use strict";
-
         /*
          * TODO-lab4
-         *
          * LAB #4: Implement addReview().
-         *
          * Using the itemId parameter, update the appropriate document in the
          * "item" collection with a new review. Reviews are stored as an
          * array value for the key "reviews". Each review has the fields:
          * "name", "comment", "stars", and "date".
-         *
          */
-
         var reviewDoc = {
             name: name,
             comment: comment,
             stars: stars,
             date: Date.now()
         }
-
-        // TODO replace the following two lines with your code that will
-        // update the document with a new review.
-        var doc = this.createDummyItem();
-        doc.reviews = [reviewDoc];
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the updated doc to the
-        // callback.
-        callback(doc);
+       var doc = this.db.collection("item").update({_id:itemId},{
+          $push:{reviews: reviewDoc}
+        },function(err, doc){
+          callback(doc);
+        })       
     }
 
 
