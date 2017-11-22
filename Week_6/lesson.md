@@ -35,6 +35,16 @@ db.companies.aggregate([{
 mongoimport -d crunchbase -c companies companies.json
 ```
 
+
+```javascript
+  db.cart.aggregate([
+    {$match:{userId:"558098a65133816958968d88"}},
+    {$project: {"items._id": 1, _id:0}},
+    {$unwind: "$items"},
+    {$match:{"items._id":2}}, 
+    {$group: {_id: "items._id"}}
+])
+```
 ## $unwind
 ```javascript
 db.companies.aggregate([{
